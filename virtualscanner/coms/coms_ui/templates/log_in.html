@@ -90,6 +90,8 @@
                 <label class="standard-tag">Standard</label>
                 <br>
                 <label class="advanced-tag">Advanced</label>
+                <br>
+                <label class="test-tag">EMI Scan</label>
               </div>
               <div class="col coltype2">
                 <label class="standard-tag">
@@ -101,8 +103,13 @@
                 <label class="advanced-tag">
                   <input class="mode-option" id="opt2" type="radio" name="mode" value="Advanced" >
                 </label>
-              </div>
-              <br>
+                
+                <br>
+
+                <label class="test-tag">
+                  <input class="mode-option" id="opt3" type="radio" name="mode" value="Test" >
+                </label>
+              </div>              
             </div>
           </div>
 
@@ -120,6 +127,7 @@
               </ul>
               <br>
             </div>
+
             <!--Advanced mode About on mouse-over-->
             <div id="advanced-about" class="jumbotron about-container">
               <p>Advanced user features:</p>
@@ -130,12 +138,20 @@
 
               </ul>
             </div>
+
+            <!--Test mode About on mouse-over-->
+            <div id="test-about" class="jumbotron about-container" >
+              <p>Test user features:</p>
+              <ul>
+                <li>EMI Mapping</li>
+                <br>
+              </ul>
+            </div>
           </div>
 
         </div>
 
-        <br>
-
+    
         <button id="mode-selection" type="submit" class="btn btn-primary">Begin Scan</button>
 
 

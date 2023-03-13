@@ -64,15 +64,26 @@ def log_in():
         # users.append(request.form['user-name'])
         # session['username'] = users[-1]
         session['username'] = request.form['user-name']
+
         if session['username'] == "":
             return render_template("log_in.html")
         if request.form['mode'] == "Standard":
+            #test
+            print("request stuff: ", request.form['mode'])
             return redirect("register")
-        else:
+        elif request.form['mode'] == "Advanced":
             return redirect("recon")
+        elif request.form['mode'] == "Test":
+            #test
+            print("request stuff: ", request.form['mode'])
+            return redirect("test")
     else:
         return render_template("log_in.html")
 
+# Testing a new page
+@app.route('/test', methods=['POST', 'GET'])
+def on_test():
+    return render_template('test.html')
 
 # This needs to point to the login screen and then we can use the register link separately
 @app.route('/register', methods=['POST', 'GET'])
