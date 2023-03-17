@@ -1,7 +1,8 @@
 # Copyright of the Board of Trustees of Columbia University in the City of New York
 
 import os, signal
-
+#test
+import requests
 if __name__ == '__main__':
     import sys
 
@@ -38,7 +39,6 @@ users = []
 n_acqs = 0
 
 app.secret_key = 'Session_key'
-
 
 @app.route('/', methods=['POST',
                          'GET'])  # This needs to point to the login screen and then we can use the register link seprately
@@ -83,6 +83,13 @@ def log_in():
 # Testing a new page
 @app.route('/test', methods=['POST', 'GET'])
 def on_test():
+    if request.method == 'POST':
+        print("Test works? ", request.form['Height'])
+        try:
+            r = requests.get("http://192.168.0.78/distance")
+        except: 
+            print("failed")
+            return render_template('error.html')
     return render_template('test.html')
 
 # This needs to point to the login screen and then we can use the register link separately
