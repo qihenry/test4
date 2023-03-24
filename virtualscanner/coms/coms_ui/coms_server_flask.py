@@ -1,8 +1,12 @@
 # Copyright of the Board of Trustees of Columbia University in the City of New York
 
 import os, signal
-#test
+
+#test-------------
+import json
 import requests
+#-----------------
+
 if __name__ == '__main__':
     import sys
 
@@ -86,9 +90,14 @@ def on_test():
     if request.method == 'POST':
         print("Test works? ", request.form['Height'])
         try:
-            r = requests.get("http://192.168.0.78/distance")
+            r = requests.get("http://localhost:8000/test")
         except: 
             print("failed")
+            return render_template('error.html')
+        else:
+            data = r.text
+            parse_json = json.loads(data)
+            print("r: ",  parse_json)
             return render_template('error.html')
     return render_template('test.html')
 
