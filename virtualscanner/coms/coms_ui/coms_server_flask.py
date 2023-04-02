@@ -38,7 +38,7 @@ ALLOWED_EXTENSIONS = {'seq', 'jpg'}
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
+button_history = []
 users = []
 n_acqs = 0
 
@@ -86,11 +86,13 @@ def log_in():
 
 # Testing a new page
 @app.route('/test', methods=['POST', 'GET'])
-def on_test():
+def room_init():
     if request.method == 'POST':
         print("Test works? ", request.form['Height'])
+        dimensions = {'height': request.form['Height'], 'length' : request.form['Length'], 'width':request.form['Width']}
         try:
-            r = requests.get("http://localhost:8000/test")
+            print("dimensions: ", dimensions)
+            r = requests.get("http://192.168.0.239/init", params=dimensions)
         except: 
             print("failed")
             return render_template('error.html')
@@ -98,8 +100,44 @@ def on_test():
             data = r.text
             parse_json = json.loads(data)
             print("r: ",  parse_json)
-            return render_template('error.html')
-    return render_template('test.html')
+            return redirect('userscan')
+    return render_template('roomDimensions.html')
+
+# Page where the user will have 3 buttons in order to help 
+# move the sensors around
+@app.route('/userscan', methods=['POST', 'GET'])
+def user_scan():
+    if request.method == 'POST':
+        button = request.form['button']
+        if button == 'right':
+            # Do something when Right button is clicked
+            print("Right button clicked")
+            r = requests.get("http://192.168.0.239/right")
+            if(r.status_code == 400):
+                return render_template('userScan.html', alert_message = r.text)
+            else:
+                button_history.append(button)
+        elif button == 'next-row':
+            # Do something when Nextrow button is clicked
+            print("Nextrow button clicked")
+            r = requests.get("http://192.168.0.239/nextRow")
+            if(r.status_code == 400):
+                return render_template('userScan.html', alert_message = r.text)
+            else:
+                button_history.append(button)
+        elif button == 'up':
+            # Do something when Up button is clicked
+            print("Up button clicked")
+            r = requests.get("http://192.168.0.239/up")
+            if(r.status_code == 400):
+                return render_template('userScan.html', alert_message = r.text)
+            else:
+                button_history.append(button)
+    return render_template('userScan.html', history=button_history)
+
+@app.route('/show-popup')
+def show_popup():
+    return render_template('popup.html')
 
 # This needs to point to the login screen and then we can use the register link separately
 @app.route('/register', methods=['POST', 'GET'])
