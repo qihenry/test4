@@ -49,6 +49,23 @@
           </div>
       </div>
     </div>
+    {% if submit %}
+    <div class="row">
+      <div class="col-md-12 text-center">
+        <div class="buttons">
+          <form method="post">
+            <button class="btn btn-primary btn-lg mr-3" name="button" value="submit">Submit</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <div>
+      {{ fig1|safe }}
+    </div>
+    <div>
+      {{ fig2|safe }}
+    </div>
     {% if alert_message %}
     <script>
       showPopup("{{ alert_message }}");

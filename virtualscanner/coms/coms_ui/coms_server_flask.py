@@ -5,6 +5,14 @@ import os, signal
 #test-------------
 import json
 import requests
+
+#---emi modules
+import math
+import numpy as np
+from plotly.graph_objs import *
+import plotly.graph_objs as go
+import os
+
 #-----------------
 
 if __name__ == '__main__':
@@ -26,7 +34,8 @@ from virtualscanner.server.rf.rx import caller_script_Rx as Rxfunc
 from virtualscanner.server.rf.tx.SAR_calc import SAR_calc_main as SAR_calc_main
 from virtualscanner.server.simulation.bloch import caller_script_blochsim as bsim
 from virtualscanner.utils import constants
-
+#----EMI imports-----
+from virtualscanner.EMI_Scanner import emi
 CURRENT_PATH = Path(__file__).parent
 ROOT_PATH = constants.ROOT_PATH
 UPLOAD_FOLDER = constants.COMS_UI_STATIC_USER_UPLOAD_PATH
@@ -38,7 +47,9 @@ ALLOWED_EXTENSIONS = {'seq', 'jpg'}
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+#some variables to hold the data for emi scanning
 button_history = []
+EMIdata = []
 users = []
 n_acqs = 0
 
@@ -84,22 +95,44 @@ def log_in():
     else:
         return render_template("log_in.html")
 
+def getSuggested(height, length, width):
+    arr = []
+    for z in range(height):
+        for j in range(width):
+            for i in range(length):
+                arr.append('R')
+            arr.append('NR')
+        arr.append('UP')
+    return arr
+
 # Testing a new page
 @app.route('/test', methods=['POST', 'GET'])
 def room_init():
+    print("Nothing is printing?")
     if request.method == 'POST':
         print("Test works? ", request.form['Height'])
         dimensions = {'height': request.form['Height'], 'length' : request.form['Length'], 'width':request.form['Width']}
+        #EMIdata = np.zeros( request.form['Height'], request.form["Width"], request.form["Length"])
+        #EMIdata = np.zeros( [3, 5, 7])
+        suggested_inputs = getSuggested(int(request.form['Height']),  int(request.form['Length']),  int(request.form['Width']))
+        print("suggested inputs: ", suggested_inputs)
         try:
             print("dimensions: ", dimensions)
-            r = requests.get("http://192.168.0.239/init", params=dimensions)
+            #r = requests.get("http://192.168.0.239/init", params=dimensions)
+            r = requests.get("http://localhost:8000/") #test server
+            #r_json = r.json()
+            #print(r_json)
+            #data = json.loads(r_json)
+            #print("Example: ", data["Height"])
         except: 
             print("failed")
             return render_template('error.html')
         else:
-            data = r.text
-            parse_json = json.loads(data)
-            print("r: ",  parse_json)
+            print("hello????")
+            data = r.json()
+            print("data", data['Height'])
+            #parse_json = json.loads(data)
+            #print("r: ",  parse_json['Height'])
             return redirect('userscan')
     return render_template('roomDimensions.html')
 
@@ -109,6 +142,7 @@ def room_init():
 def user_scan():
     if request.method == 'POST':
         button = request.form['button']
+        #could be modulized to one function
         if button == 'right':
             # Do something when Right button is clicked
             print("Right button clicked")
@@ -117,6 +151,7 @@ def user_scan():
                 return render_template('userScan.html', alert_message = r.text)
             else:
                 button_history.append(button)
+                # also append the retrieved data to the EMIdata
         elif button == 'next-row':
             # Do something when Nextrow button is clicked
             print("Nextrow button clicked")
@@ -125,6 +160,7 @@ def user_scan():
                 return render_template('userScan.html', alert_message = r.text)
             else:
                 button_history.append(button)
+                # also append the retrieved data to the EMIdata
         elif button == 'up':
             # Do something when Up button is clicked
             print("Up button clicked")
@@ -133,7 +169,18 @@ def user_scan():
                 return render_template('userScan.html', alert_message = r.text)
             else:
                 button_history.append(button)
-    return render_template('userScan.html', history=button_history)
+                # also append the retrieved data to the EMIdata
+        elif button == "submit":
+            print("Submit button clicked")
+            #r = requests.get("http://192.168.0.239/getData")
+            #if(r.status_code == 400):
+                #return render_template('userScan.html', alert_message = r.text)
+            #else:
+            [fig1, fig2] = emi.run_emi()
+            fig1_html = fig1.to_html(full_html = False)
+            fig2_html = fig2.to_html(full_html = False)
+            return render_template('userScan.html', history=button_history, fig1 = fig1_html, fig2 = fig2_html, submit=False)
+    return render_template('userScan.html', history=button_history, submit=True)
 
 @app.route('/show-popup')
 def show_popup():
