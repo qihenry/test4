@@ -1,3 +1,5 @@
+from virtualscanner.EMI_Scanner.emi_measurement_class import emi_measurement
+
 # function to take in nested list of measured data and convert
 # values from ints to class instances
 def convert_to_emi_class(full_list_ints):

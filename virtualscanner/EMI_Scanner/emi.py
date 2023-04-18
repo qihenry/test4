@@ -4,6 +4,7 @@ from virtualscanner.EMI_Scanner.least_emi_algorithm import search_algorithm
 from virtualscanner.EMI_Scanner.emi_measurement_class import emi_measurement
 from virtualscanner.EMI_Scanner.visualize_EMI import visualize_EMI
 from virtualscanner.EMI_Scanner.visualize_target_area import visualize_target_area
+from virtualscanner.EMI_Scanner.convert_to_emi_class import convert_to_emi_class
 
 
 
@@ -47,7 +48,6 @@ for i in range(len(full_list_INTS)):
 
 def run_emi(data=full_list):
     ###### RUN SEARCH ALGORITHM ######
-
     # set max value that can be present in any given solution target area
     EMI_max = math.inf
 

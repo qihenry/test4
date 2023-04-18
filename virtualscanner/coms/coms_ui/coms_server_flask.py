@@ -35,7 +35,9 @@ from virtualscanner.server.rf.tx.SAR_calc import SAR_calc_main as SAR_calc_main
 from virtualscanner.server.simulation.bloch import caller_script_blochsim as bsim
 from virtualscanner.utils import constants
 #----EMI imports-----
-from virtualscanner.EMI_Scanner import emi
+from virtualscanner.EMI_Scanner import emi 
+from virtualscanner.EMI_Scanner.emi_measurement_class import emi_measurement
+
 CURRENT_PATH = Path(__file__).parent
 ROOT_PATH = constants.ROOT_PATH
 UPLOAD_FOLDER = constants.COMS_UI_STATIC_USER_UPLOAD_PATH
@@ -49,7 +51,10 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #some variables to hold the data for emi scanning
 button_history = []
-EMIdata = []
+EMIdata = None
+ip = "http://192.168.108.223"
+
+
 users = []
 n_acqs = 0
 
@@ -96,15 +101,49 @@ def log_in():
         return render_template("log_in.html")
 
 def getSuggested(height, length, width):
-    arr = []
-    for z in range(height):
-        for j in range(width):
-            for i in range(length):
-                arr.append('R')
+    arr = ['C']
+    i = 1
+    
+    j = 1
+    
+    z = 1
+    print("length: ", length)
+    print("width: ", width)
+    print("height: ", height)
+    while 1:
+        print("i: ", i)
+        print("j: ", j)
+        print("z: ", z)
+        if i < length:
+            print("added r")
+            arr.append('R')
+            i += 1
+        if i == length and j < width:
+            print("added NR")
             arr.append('NR')
-        arr.append('UP')
+            i = 1
+            j += 1
+        if i == length and j == width and z < height:
+            print("added UP")
+            arr.append('UP')
+            i = 1
+            j = 1
+            z += 1
+        if i == length and j == width and z == height:
+            break
+        
     return arr
-
+def fillData(jsonData):
+    #extract data from the json
+    x = jsonData["Length"]
+    y = jsonData["Width"]
+    z = jsonData["Height"]
+    data_x = jsonData["xData"]
+    data_y = jsonData["yData"]
+    data_z = jsonData["zData"]
+    # store the data into our emidata global variable
+    global EMIdata
+    EMIdata[x][y][z] = emi_measurement(data_x, data_y, data_z)
 # Testing a new page
 @app.route('/test', methods=['POST', 'GET'])
 def room_init():
@@ -112,25 +151,20 @@ def room_init():
     if request.method == 'POST':
         print("Test works? ", request.form['Height'])
         dimensions = {'height': request.form['Height'], 'length' : request.form['Length'], 'width':request.form['Width']}
-        #EMIdata = np.zeros( request.form['Height'], request.form["Width"], request.form["Length"])
-        #EMIdata = np.zeros( [3, 5, 7])
+        global EMIdata 
+        EMIdata = [[[0 for k in range(int(request.form['Height']))] for j in range(int(request.form['Length']))] for i in range(int(request.form['Width']))]
+        print("data: ", EMIdata)
         suggested_inputs = getSuggested(int(request.form['Height']),  int(request.form['Length']),  int(request.form['Width']))
         print("suggested inputs: ", suggested_inputs)
         try:
             print("dimensions: ", dimensions)
-            #r = requests.get("http://192.168.0.239/init", params=dimensions)
-            r = requests.get("http://localhost:8000/") #test server
-            #r_json = r.json()
-            #print(r_json)
-            #data = json.loads(r_json)
-            #print("Example: ", data["Height"])
+            r = requests.get(ip + "/init", params=dimensions)
         except: 
-            print("failed")
             return render_template('error.html')
         else:
             print("hello????")
             data = r.json()
-            print("data", data['Height'])
+            print("data", data)
             #parse_json = json.loads(data)
             #print("r: ",  parse_json['Height'])
             return redirect('userscan')
@@ -143,43 +177,23 @@ def user_scan():
     if request.method == 'POST':
         button = request.form['button']
         #could be modulized to one function
-        if button == 'right':
-            # Do something when Right button is clicked
-            print("Right button clicked")
-            r = requests.get("http://192.168.0.239/right")
-            if(r.status_code == 400):
-                return render_template('userScan.html', alert_message = r.text)
-            else:
-                button_history.append(button)
-                # also append the retrieved data to the EMIdata
-        elif button == 'next-row':
-            # Do something when Nextrow button is clicked
-            print("Nextrow button clicked")
-            r = requests.get("http://192.168.0.239/nextRow")
-            if(r.status_code == 400):
-                return render_template('userScan.html', alert_message = r.text)
-            else:
-                button_history.append(button)
-                # also append the retrieved data to the EMIdata
-        elif button == 'up':
-            # Do something when Up button is clicked
-            print("Up button clicked")
-            r = requests.get("http://192.168.0.239/up")
-            if(r.status_code == 400):
-                return render_template('userScan.html', alert_message = r.text)
-            else:
-                button_history.append(button)
-                # also append the retrieved data to the EMIdata
-        elif button == "submit":
+        if button == "submit":
             print("Submit button clicked")
-            #r = requests.get("http://192.168.0.239/getData")
-            #if(r.status_code == 400):
-                #return render_template('userScan.html', alert_message = r.text)
-            #else:
-            [fig1, fig2] = emi.run_emi()
+            print("Our data is: ", EMIdata)
+            [fig1, fig2] = emi.run_emi(EMIdata)
             fig1_html = fig1.to_html(full_html = False)
             fig2_html = fig2.to_html(full_html = False)
             return render_template('userScan.html', history=button_history, fig1 = fig1_html, fig2 = fig2_html, submit=False)
+        else:
+            # Do something when Right button is clicked
+            print(button + "button clicked")
+            r = requests.get(ip + "/" + button)
+            if(r.status_code == 400):
+                return render_template('userScan.html', alert_message = r.text)
+            else:
+                print("data: ", r.json())
+                fillData(r.json())
+                button_history.append(button)
     return render_template('userScan.html', history=button_history, submit=True)
 
 @app.route('/show-popup')
