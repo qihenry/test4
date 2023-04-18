@@ -52,7 +52,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #some variables to hold the data for emi scanning
 button_history = []
 EMIdata = None
-ip = "http://192.168.108.223"
+ip = "http://192.168.108.145"
 
 
 users = []
@@ -152,7 +152,7 @@ def room_init():
         print("Test works? ", request.form['Height'])
         dimensions = {'height': request.form['Height'], 'length' : request.form['Length'], 'width':request.form['Width']}
         global EMIdata 
-        EMIdata = [[[0 for k in range(int(request.form['Height']))] for j in range(int(request.form['Length']))] for i in range(int(request.form['Width']))]
+        EMIdata = [[[emi_measurement(0,0,0) for k in range(int(request.form['Height']))] for j in range(int(request.form['Length']))] for i in range(int(request.form['Width']))]
         print("data: ", EMIdata)
         suggested_inputs = getSuggested(int(request.form['Height']),  int(request.form['Length']),  int(request.form['Width']))
         print("suggested inputs: ", suggested_inputs)

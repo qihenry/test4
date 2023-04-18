@@ -52,9 +52,9 @@ def run_emi(data=full_list):
     EMI_max = math.inf
 
     # set target area dimensions
-    tax = 3
-    tay = 5
-    taz = 5
+    tax = 1
+    tay = 1
+    taz = 1
 
     # test room w/ MRI lengthwise along x-axis
     least_avg_val = math.inf

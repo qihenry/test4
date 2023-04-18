@@ -51,7 +51,7 @@ class emi_measurement:
 
 # define necessary functions    
     def get_magnitude(self):
-        return np.cbrt(self.x * self.x + self.y * self.y + self.z * self.z)
+        return np.sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
 '''    
 a = emi_measurement(1,1,1)
 b = emi_measurement(1,1,1)
